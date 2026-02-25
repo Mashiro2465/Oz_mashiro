@@ -6,9 +6,9 @@
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select
-from database import get_db
-from auth import get_current_user
-import models, schemas
+from ..database import get_db
+from ..auth import get_current_user
+from .. import models, schemas
 from .market import manager
 
 router = APIRouter()
@@ -22,13 +22,20 @@ async def get_status(
     """사용자 자산 상태 조회 실습"""
 
     # TODO: db.execute와 select를 사용해 현재 유저의 Portfolio 정보를 조회하세요
-
+    result = await db.execute(
+        select(models.Portfolio).where(models.Portfolio.username == user.username)
+    )
     # TODO: 포트폴리오(p) 존재 여부에 따라 보유수량(amount)과 평단가(avg_price)를 변수에 저장하세요 (없으면 0)
+    p = result.scalar_one_or_none()
+    amount = p.amount
+    avg_price = p.avg_price
 
     # TODO: 현재가(current_price)를 기준으로 다음 수치를 계산하세요
     # 1. evaluation: 평가 금액 (보유수량 * 현재가)
+    evaluation =amount*avg_price
     # 2. profit: 평가 손익 (평가 금액 - 투자 원금)
     # 힌트: 투자 원금은 (보유수량 * 평단가) 입니다.
+
 
     # TODO: 계산된 정보를 바탕으로 다음 키를 가진 딕셔너리를 반환하세요
     # 반환 키: "cash", "holdings", "evaluation", "profit", "total_asset"
